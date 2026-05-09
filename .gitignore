@@ -1,0 +1,37 @@
+# ========================
+# Environment / Secrets
+# ========================
+.env
+.env.local
+.env.production
+
+# ========================
+# Python
+# ========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.venv/
+*.egg-info/
+
+# ========================
+# Docker
+# ========================
+postgres_data/
+
+# ========================
+# Node / Expo
+# ========================
+node_modules/
+.expo/
+dist/
+web-build/
+
+# ========================
+# OS
+# ========================
+.DS_Store
+Thumbs.db
+desktop.ini
