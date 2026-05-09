@@ -1,0 +1,8 @@
+fastapi
+uvicorn[standard]
+recipe-scrapers
+ingredient-parser-nlp
+sqlalchemy
+psycopg2-binary
+python-dotenv
+httpx
