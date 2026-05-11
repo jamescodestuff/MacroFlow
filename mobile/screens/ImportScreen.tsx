@@ -1,0 +1,220 @@
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+  ActivityIndicator,
+} from "react-native";
+import { useState } from "react";
+import { useTheme } from "../context/ThemeContext";
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+export default function ImportScreen() {
+  const { theme } = useTheme();
+  const [url, setUrl] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [recipe, setRecipe] = useState<any>(null);
+
+  const styles = makeStyles(theme);
+
+  async function handleImport() {
+    if (!url) {
+      setError("Please enter a URL");
+      return;
+    }
+
+    // Reset state before new request
+    setError("");
+    setRecipe(null);
+    setLoading(true);
+
+    try {
+      const response = await fetch(`${API_URL}/parse-recipe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const json = await response.json();
+      if (json.error) {
+        setError(json.error);
+      } else {
+        setRecipe(json.data);
+      }
+    } catch (e) {
+      setError("Could not reach the server — is Docker running?");
+    } finally {
+      setLoading(false);
+    }
+  }
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Header */}
+        <Text style={styles.heading}>Import a Recipe</Text>
+        <Text style={styles.subtext}>Paste a recipe URL below</Text>
+
+        {/* URL Input */}
+        <TextInput
+          style={styles.input}
+          placeholder="https://www.bbcgoodfood.com/..."
+          placeholderTextColor={theme.subtext}
+          value={url}
+          onChangeText={setUrl}
+          autoCapitalize="none"
+          keyboardType="url"
+        />
+
+        {/* Import Button */}
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleImport}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Import Recipe</Text>
+          )}
+        </TouchableOpacity>
+
+        {/* Error */}
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+
+        {/* Recipe Result */}
+        {recipe && (
+          <View style={styles.card}>
+            {/* Recipe Image */}
+            {recipe.image && (
+              <Image source={{ uri: recipe.image }} style={styles.image} />
+            )}
+
+            {/* Title */}
+            <Text style={styles.title}>{recipe.title}</Text>
+
+            {/* Servings */}
+            {recipe.servings && (
+              <Text style={styles.meta}>Serves: {recipe.servings}</Text>
+            )}
+
+            {/* Ingredients */}
+            <Text style={styles.sectionHeader}>Ingredients</Text>
+            {recipe.ingredients.map((ing: string, i: number) => (
+              <Text key={i} style={styles.listItem}>
+                • {ing}
+              </Text>
+            ))}
+
+            {/* Steps */}
+            <Text style={styles.sectionHeader}>Steps</Text>
+            {recipe.steps.map((step: string, i: number) => (
+              <Text key={i} style={styles.listItem}>
+                {i + 1}. {step}
+              </Text>
+            ))}
+          </View>
+        )}
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+function makeStyles(theme: any) {
+  return StyleSheet.create({
+    container: {
+      flexGrow: 1,
+      backgroundColor: theme.background,
+      padding: 24,
+    },
+    heading: {
+      fontSize: 28,
+      fontWeight: "700",
+      color: theme.text,
+      marginBottom: 8,
+      marginTop: 48,
+    },
+    subtext: {
+      fontSize: 15,
+      color: theme.subtext,
+      marginBottom: 24,
+    },
+    input: {
+      backgroundColor: theme.card,
+      borderWidth: 1,
+      borderColor: theme.border,
+      borderRadius: 12,
+      padding: 16,
+      fontSize: 15,
+      color: theme.text,
+      marginBottom: 16,
+    },
+    button: {
+      backgroundColor: theme.primary,
+      borderRadius: 12,
+      padding: 16,
+      alignItems: "center",
+      marginBottom: 16,
+    },
+    buttonText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    error: {
+      color: theme.error,
+      fontSize: 14,
+      marginBottom: 16,
+      textAlign: "center",
+    },
+    card: {
+      backgroundColor: theme.card,
+      borderRadius: 16,
+      padding: 20,
+      marginTop: 8,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    image: {
+      width: "100%",
+      height: 200,
+      borderRadius: 12,
+      marginBottom: 16,
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: "700",
+      color: theme.text,
+      marginBottom: 4,
+    },
+    meta: {
+      fontSize: 14,
+      color: theme.subtext,
+      marginBottom: 16,
+    },
+    sectionHeader: {
+      fontSize: 17,
+      fontWeight: "600",
+      color: theme.text,
+      marginTop: 16,
+      marginBottom: 8,
+    },
+    listItem: {
+      fontSize: 14,
+      color: theme.text,
+      lineHeight: 22,
+      marginBottom: 4,
+    },
+  });
+}
