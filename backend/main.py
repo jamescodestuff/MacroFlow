@@ -14,6 +14,7 @@ app.add_middleware(
 
 app.include_router(recipe.router)
 
+
 @app.get("/")
 def root():
     return {"status": "MacroFlow API is running"}
