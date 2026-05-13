@@ -31,7 +31,7 @@ const DUMMY_RECIPES = [
   },
 ];
 
-export default function BookScreen({ nagivation }: any) {
+export default function BookScreen({ navigation }: any) {
   const { theme } = useTheme();
   const styles = makeStyles(theme);
 
@@ -40,7 +40,7 @@ export default function BookScreen({ nagivation }: any) {
       return (
         <TouchableOpacity
           style={[styles.card, styles.addCard]}
-          onPress={() => nagivation.navigate("import")}
+          onPress={() => navigation.navigate("import")}
         >
           <Text style={styles.addIcon}>+</Text>
           <Text style={styles.addText}>Import Rercipe</Text>
@@ -141,11 +141,11 @@ function makeStyles(theme: any) {
     },
     cardImage: {
       width: "100%",
-      height: 110,
+      height: 140,
     },
     cardImagePlaceholder: {
       width: "100%",
-      height: 110,
+      height: 140,
       backgroundColor: theme.border,
       alignItems: "center",
       justifyContent: "center",
@@ -157,11 +157,11 @@ function makeStyles(theme: any) {
       fontSize: 13,
       fontWeight: "600",
       color: theme.text,
-      padding: 8,
+      padding: 10,
       lineHeight: 18,
     },
     addCard: {
-      height: 160,
+      height: 188,
       alignItems: "center",
       justifyContent: "center",
       borderStyle: "dashed",
