@@ -1,21 +1,21 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 from services.scraper import scrape_url
+from database import get_db
+from models.recipe import Recipe
 
 router = APIRouter()
 
 
 @router.post("/parse-recipe")
 async def parse_recipe(payload: dict):
-
     source = payload.get("url") or payload.get("text", "")
 
     if not source:
         return {"error": "No URL or text provided"}
-    print("source:", source)
+
     if source.startswith("http"):
         result = scrape_url(source)
-        print("result:", result)
-
         if result:
             return {"source": "scraper", "data": result}
         else:
@@ -25,3 +25,42 @@ async def parse_recipe(payload: dict):
             }
 
     return {"recieveded": source, "message": "text parsing next"}
+
+
+@router.post("/save-recipe")
+def save_recipe(payload: dict, db: Session = Depends(get_db)):
+    data = payload.get("data", {})
+
+    recipe = Recipe(
+        title=data.get("title"),
+        ingredients=data.get("ingredients", []),
+        steps=data.get("steps", []),
+        image_url=data.get("image"),
+        servings=str(data.get("servings", "")),
+        source_url=data.get("source_url", ""),
+    )
+
+    db.add(recipe)
+    db.commit()
+    db.refresh(recipe)
+
+    return {"status": "saved", "id": recipe.id, "title": recipe.title}
+
+
+@router.get("/recipes")
+def get_recipes(db: Session = Depends(get_db)):
+    recipes = db.query(Recipe).order_by(Recipe.created_at.desc()).all()
+
+    return [
+        {
+            "id": r.id,
+            "title": r.title,
+            "ingredients": r.ingredients,
+            "steps": r.steps,
+            "image_url": r.image_url,
+            "servings": r.servings,
+            "source_url": r.source_url,
+            "created_at": str(r.created_at),
+        }
+        for r in recipes
+    ]

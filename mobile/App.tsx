@@ -26,13 +26,23 @@ function MainTabs() {
           borderTopColor: theme.border,
         },
         tabBarActiveTintColor: theme.primary,
-        tabBarInactiveTinColor: theme.subtext,
-        tabBarLabel: route.name,
+        tabBarInactiveTintColor: theme.subtext,
       })}
     >
-      <Tab.Screen name="Import" component={ImportScreen} />
-      <Tab.Screen name="Books" component={BookScreen} />
+      <Tab.Screen name="Book" component={BookScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
+
+      {/* Hidden screens — no tab bar button */}
+      <Tab.Screen
+        name="Import"
+        component={ImportScreen}
+        options={{ tabBarButton: () => null }}
+      />
+      <Tab.Screen
+        name="Search"
+        component={SearchScreen}
+        options={{ tabBarButton: () => null }}
+      />
     </Tab.Navigator>
   );
 }
@@ -41,11 +51,15 @@ export default function App() {
   return (
     <ThemeProvider>
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator
+          initialRouteName="Login"
+          screenOptions={{ headerShown: false }}
+        >
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="Main" component={MainTabs} />
-          <Stack.Screen name="Search" component={SearchScreen} />
+          {/* <Stack.Screen name="Import" component={ImportScreen} /> */}
+          {/* <Stack.Screen name="Search" component={SearchScreen} /> */}
         </Stack.Navigator>
       </NavigationContainer>
     </ThemeProvider>

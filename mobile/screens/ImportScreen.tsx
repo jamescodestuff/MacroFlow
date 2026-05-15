@@ -15,8 +15,8 @@ import { useTheme } from "../context/ThemeContext";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
-export default function ImportScreen() {
-  const { theme } = useTheme();
+export default function ImportScreen({ navigation }: any) {
+  const { theme, isDark} = useTheme();
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -63,8 +63,16 @@ export default function ImportScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Header */}
-        <Text style={styles.heading}>Import a Recipe</Text>
-        <Text style={styles.subtext}>Paste a recipe URL below</Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.heading}>Import a Recipe</Text>
+          <TouchableOpacity
+            onPress={() =>
+              (navigation as any).navigate("Main", { screen: "Book" })
+            }
+          >
+            <Text style={styles.closeButton}>✕</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* URL Input */}
         <TextInput
@@ -75,6 +83,7 @@ export default function ImportScreen() {
           onChangeText={setUrl}
           autoCapitalize="none"
           keyboardType="url"
+          keyboardAppearance={isDark ? "dark" : "light"}
         />
 
         {/* Import Button */}
@@ -215,6 +224,18 @@ function makeStyles(theme: any) {
       color: theme.text,
       lineHeight: 22,
       marginBottom: 4,
+    },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: 8,
+      marginTop: 48,
+    },
+    closeButton: {
+      fontSize: 20,
+      color: theme.subtext,
+      padding: 4,
     },
   });
 }

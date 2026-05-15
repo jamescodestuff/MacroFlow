@@ -12,7 +12,7 @@ import { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 
 export default function RegisterScreen({ navigation }: any) {
-  const { theme } = useTheme();
+  const { theme, isDark} = useTheme();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -64,6 +64,7 @@ export default function RegisterScreen({ navigation }: any) {
           placeholderTextColor={theme.subtext}
           value={name}
           onChangeText={setName}
+          keyboardAppearance={isDark ? "dark" : "light"}
         />
 
         {/* Email Input */}
@@ -75,6 +76,7 @@ export default function RegisterScreen({ navigation }: any) {
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
+          keyboardAppearance={isDark ? "dark" : "light"}
         />
 
         {/* Password Input */}
@@ -85,6 +87,7 @@ export default function RegisterScreen({ navigation }: any) {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          keyboardAppearance={isDark ? "dark" : "light"}
         />
 
         {/* Confirm Password */}
@@ -95,6 +98,7 @@ export default function RegisterScreen({ navigation }: any) {
           value={confirm}
           onChangeText={setConfirm}
           secureTextEntry
+          keyboardAppearance={isDark ? "dark" : "light"}
         />
 
         {/* Register Button */}

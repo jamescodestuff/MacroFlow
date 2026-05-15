@@ -26,7 +26,7 @@ const DUMMY_RECIPES = [
 type ViewMode = "single" | "compact";
 
 export default function SearchScreen({ navigation }: any) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const [query, setQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("single");
   const inputRef = useRef<TextInput>(null);
@@ -120,6 +120,7 @@ export default function SearchScreen({ navigation }: any) {
           onChangeText={setQuery}
           autoCapitalize="none"
           returnKeyType="search"
+          keyboardAppearance={isDark ? "dark" : "light"}
         />
 
         {/* View mode toggle */}

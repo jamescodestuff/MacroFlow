@@ -6,11 +6,10 @@ import {
   StyleSheet,
   FlatList,
   Image,
-  Dimensions,
 } from "react-native";
 import { useTheme } from "../context/ThemeContext";
-
-const SCREEN_WIDDTH = Dimensions.get("window").width;
+import { useState, useEffect, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 
 const DUMMY_RECIPES = [
   {
@@ -31,9 +30,34 @@ const DUMMY_RECIPES = [
   },
 ];
 
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
 export default function BookScreen({ navigation }: any) {
   const { theme } = useTheme();
+  const [recipes, setRecipes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const styles = makeStyles(theme);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchRecipes();
+    }, []),
+  );
+
+  async function fetchRecipes() {
+    console.log("API_URL:", API_URL); // add this
+    console.log("fetching recipes..."); // add this
+    try {
+      const response = await fetch(`${API_URL}/recipes`);
+      const json = await response.json();
+      console.log("recipes:", json); // add this
+      setRecipes(json);
+    } catch (e) {
+      console.error("Could not load recipes", e);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   function renderRecipeCard({ item }: any) {
     if (item.id === "add") {
@@ -80,7 +104,8 @@ export default function BookScreen({ navigation }: any) {
 
       {/* Recipe grid */}
       <FlatList
-        data={[...DUMMY_RECIPES, { id: "add" }]}
+        // data={[...DUMMY_RECIPES, { id: "add" }]}
+        data={recipes}
         renderItem={renderRecipeCard}
         keyExtractor={(item) => item.id}
         numColumns={2}
@@ -88,6 +113,14 @@ export default function BookScreen({ navigation }: any) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.grid}
       />
+
+      {/* FAB — must be outside FlatList */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => navigation.navigate("Import")}
+      >
+        <Text style={styles.fabIcon}>+</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -174,6 +207,24 @@ function makeStyles(theme: any) {
       fontSize: 12,
       color: theme.subtext,
       marginTop: 4,
+    },
+    fab: {
+      position: "absolute",
+      bottom: 32,
+      right: 24,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      backgroundColor: theme.primary,
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 999,
+      boxShadow: "0px 2px 8px rgba(0,0,0,0.25)",
+    },
+    fabIcon: {
+      fontSize: 28,
+      color: "#ffffff",
+      lineHeight: 32,
     },
   });
 }

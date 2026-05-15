@@ -9,7 +9,7 @@ import { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
 
 export default function LoginScreen({ navigation }: any) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -30,6 +30,7 @@ export default function LoginScreen({ navigation }: any) {
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
+        keyboardAppearance={isDark ? "dark" : "light"}
       />
 
       {/* Password Input */}
@@ -40,6 +41,7 @@ export default function LoginScreen({ navigation }: any) {
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        keyboardAppearance={isDark ? "dark" : "light"}
       />
 
       {/* Login Button */}
