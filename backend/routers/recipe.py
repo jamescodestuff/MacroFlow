@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from services.scraper import scrape_url
 from database import get_db
@@ -50,7 +50,6 @@ def save_recipe(payload: dict, db: Session = Depends(get_db)):
 @router.get("/recipes")
 def get_recipes(db: Session = Depends(get_db)):
     recipes = db.query(Recipe).order_by(Recipe.created_at.desc()).all()
-
     return [
         {
             "id": r.id,
@@ -64,3 +63,13 @@ def get_recipes(db: Session = Depends(get_db)):
         }
         for r in recipes
     ]
+
+
+@router.delete("/recipes/{recipe_id}")
+def delete_recipes(recipe_id: int, db: Session = Depends(get_db)):
+    recipe = db.query(Recipe).filter(Recipe.id == recipe_id).first()
+    if not recipe:
+        raise HTTPException(status_code=404, detail="Recipe not found")
+    db.delete(recipe)
+    db.commit()
+    return {"ok": True}

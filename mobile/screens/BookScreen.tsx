@@ -69,7 +69,10 @@ export default function BookScreen({ navigation }: any) {
       );
     }
     return (
-      <TouchableOpacity style={styles.card}>
+      <TouchableOpacity
+        style={styles.card}
+        onPress={() => navigation.navigate("RecipeDetail", { recipe: item })}
+      >
         {item.image ? (
           <Image source={{ uri: item.image }} style={styles.cardImage} />
         ) : (

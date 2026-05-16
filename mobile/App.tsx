@@ -10,6 +10,7 @@ import ImportScreen from "./screens/ImportScreen";
 import BookScreen from "./screens/BookScreen";
 import ProfileScreen from "./screens/ProfileScreen";
 import SearchScreen from "./screens/SearchScreen";
+import RecipeDetailScreen from "./screens/RecipeDetailScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -58,8 +59,7 @@ export default function App() {
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
           <Stack.Screen name="Main" component={MainTabs} />
-          {/* <Stack.Screen name="Import" component={ImportScreen} /> */}
-          {/* <Stack.Screen name="Search" component={SearchScreen} /> */}
+          <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </ThemeProvider>
