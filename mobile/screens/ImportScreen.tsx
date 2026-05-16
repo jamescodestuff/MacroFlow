@@ -9,31 +9,43 @@ import {
   Platform,
   Image,
   ActivityIndicator,
+  Keyboard,
 } from "react-native";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { useTheme } from "../context/ThemeContext";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function ImportScreen({ navigation }: any) {
-  const { theme, isDark} = useTheme();
+  const { theme, isDark } = useTheme();
   const [url, setUrl] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [savedId, setSavedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [recipe, setRecipe] = useState<any>(null);
 
   const styles = makeStyles(theme);
 
+  useFocusEffect(
+    useCallback(() => {
+      // Reset everything every time screen is opened
+      setUrl("");
+      setRecipe(null);
+      setError("");
+      setSavedId(null);
+      setLoading(false);
+      setSaving(false);
+    }, []),
+  );
+
   async function handleImport() {
+    Keyboard.dismiss();
     if (!url) {
       setError("Please enter a URL");
       return;
     }
-
-    // Reset state before new request
-    setError("");
-    setRecipe(null);
-    setLoading(true);
 
     try {
       const response = await fetch(`${API_URL}/parse-recipe`, {
@@ -53,6 +65,32 @@ export default function ImportScreen({ navigation }: any) {
       setLoading(false);
     }
   }
+
+  async function handleSave() {
+    if (!recipe) return;
+    setSaving(true);
+
+    try {
+      const response = await fetch(`${API_URL}/save-recipe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: { ...recipe, source_url: url } }),
+      });
+
+      const json = await response.json();
+
+      if (json.error) {
+        setError(json.error);
+      } else {
+        setSavedId(json.id);
+        setTimeout(() => navigation.navigate("Book"), 1000); // brief delay so user sees
+      }
+    } catch (e) {
+      setError("Could not save recipe");
+    } finally {
+      setSaving(false);
+    }
+  }
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -65,11 +103,7 @@ export default function ImportScreen({ navigation }: any) {
         {/* Header */}
         <View style={styles.headerRow}>
           <Text style={styles.heading}>Import a Recipe</Text>
-          <TouchableOpacity
-            onPress={() =>
-              (navigation as any).navigate("Main", { screen: "Book" })
-            }
-          >
+          <TouchableOpacity onPress={() => navigation.navigate("Book")}>
             <Text style={styles.closeButton}>✕</Text>
           </TouchableOpacity>
         </View>
@@ -133,6 +167,25 @@ export default function ImportScreen({ navigation }: any) {
                 {i + 1}. {step}
               </Text>
             ))}
+
+            {/* Save Button */}
+            {!savedId ? (
+              <TouchableOpacity
+                style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+                onPress={handleSave}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.saveButtonText}>Save Recipe</Text>
+                )}
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.savedBadge}>
+                <Text style={styles.savedText}>✓ Saved to your book</Text>
+              </View>
+            )}
           </View>
         )}
       </ScrollView>
@@ -236,6 +289,35 @@ function makeStyles(theme: any) {
       fontSize: 20,
       color: theme.subtext,
       padding: 4,
+    },
+    saveButton: {
+      backgroundColor: theme.primary,
+      borderRadius: 12,
+      padding: 14,
+      alignItems: "center",
+      marginTop: 16,
+    },
+    saveButtonDisabled: {
+      opacity: 0.6,
+    },
+    saveButtonText: {
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: "600",
+    },
+    savedBadge: {
+      backgroundColor: theme.card,
+      borderRadius: 12,
+      padding: 14,
+      alignItems: "center",
+      marginTop: 16,
+      borderWidth: 1,
+      borderColor: theme.primary,
+    },
+    savedText: {
+      color: theme.primary,
+      fontSize: 15,
+      fontWeight: "600",
     },
   });
 }

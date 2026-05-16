@@ -45,12 +45,9 @@ export default function BookScreen({ navigation }: any) {
   );
 
   async function fetchRecipes() {
-    console.log("API_URL:", API_URL); // add this
-    console.log("fetching recipes..."); // add this
     try {
       const response = await fetch(`${API_URL}/recipes`);
       const json = await response.json();
-      console.log("recipes:", json); // add this
       setRecipes(json);
     } catch (e) {
       console.error("Could not load recipes", e);
