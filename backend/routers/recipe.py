@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from services.scraper import scrape_url
 from database import get_db
@@ -48,8 +48,15 @@ def save_recipe(payload: dict, db: Session = Depends(get_db)):
 
 
 @router.get("/recipes")
-def get_recipes(db: Session = Depends(get_db)):
-    recipes = db.query(Recipe).order_by(Recipe.created_at.desc()).all()
+def get_recipes(
+    db: Session = Depends(get_db),
+    q: str = Query(default="", description="Search query"),
+):
+
+    query = db.query(Recipe).order_by(Recipe.created_at.desc())
+    if q:
+        query = query.filter(Recipe.title.ilike(f"%{q}%"))  # case-insensitive
+    recipes = query.all()
     return [
         {
             "id": r.id,

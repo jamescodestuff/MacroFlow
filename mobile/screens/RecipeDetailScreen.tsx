@@ -70,8 +70,8 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
         showsVerticalScrollIndicator={false}
       >
         {/* Image or placeholder */}
-        {recipe.image ? (
-          <Image source={{ uri: recipe.image }} style={styles.image} />
+        {recipe.image_url ? (
+          <Image source={{ uri: recipe.image_url }} style={styles.image} />
         ) : (
           <View style={styles.imagePlaceholder}>
             <Text style={styles.placeholderIcon}>🍽️</Text>

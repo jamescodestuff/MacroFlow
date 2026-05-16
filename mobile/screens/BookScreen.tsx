@@ -11,25 +11,6 @@ import { useTheme } from "../context/ThemeContext";
 import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 
-const DUMMY_RECIPES = [
-  {
-    id: "1",
-    title: "Classic Pancakes",
-    image:
-      "https://images.immediate.co.uk/production/volatile/sites/30/2020/08/recipe-image-legacy-id-881465_10-7cc4719.jpg",
-  },
-  {
-    id: "2",
-    title: "Tandoori Chicken",
-    image: null,
-  },
-  {
-    id: "3",
-    title: "Blueberry Muffins",
-    image: null,
-  },
-];
-
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export default function BookScreen({ navigation }: any) {
@@ -73,8 +54,8 @@ export default function BookScreen({ navigation }: any) {
         style={styles.card}
         onPress={() => navigation.navigate("RecipeDetail", { recipe: item })}
       >
-        {item.image ? (
-          <Image source={{ uri: item.image }} style={styles.cardImage} />
+        {item.image_url ? (
+          <Image source={{ uri: item.image_url }} style={styles.cardImage} />
         ) : (
           <View style={styles.cardImagePlaceholder}>
             <Text style={styles.placeholderIcon}>🍽️</Text>

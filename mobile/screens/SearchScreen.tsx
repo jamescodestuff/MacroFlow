@@ -28,39 +28,82 @@ type ViewMode = "single" | "compact";
 export default function SearchScreen({ navigation }: any) {
   const { theme, isDark } = useTheme();
   const [query, setQuery] = useState("");
+  const [results, setResults] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("single");
   const inputRef = useRef<TextInput>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const styles = makeStyles(theme);
 
+  const API_URL = process.env.EXPO_PUBLIC_API_URL;
+
+  // Auto-focus on mount
   useEffect(() => {
     const timeout = setTimeout(() => inputRef.current?.focus(), 100);
     return () => clearTimeout(timeout);
   }, []);
 
-  const filtered = DUMMY_RECIPES.filter((r) =>
-    r.title.toLowerCase().includes(query.toLowerCase()),
-  );
+  useEffect(() => {
+    fetchRecipes("");
+  }, []);
+
+  // Debounced search on query change
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchRecipes(query);
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [query]);
+
+  async function fetchRecipes(q: string) {
+    setLoading(true);
+    try {
+      const url = q
+        ? `${API_URL}/recipes?q=${encodeURIComponent(q)}`
+        : `${API_URL}/recipes`;
+      const res = await fetch(url);
+      const json = await res.json();
+      setResults(json);
+    } catch (e) {
+      console.error("Search failed", e);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function goToDetail(item: any) {
+    navigation.navigate("RecipeDetail", { recipe: item });
+  }
 
   const listData = [
-    { id: "create", title: "+ Create new recipe", image: null },
-    ...filtered,
+    { id: "create", title: "+ Create new recipe", image_url: null },
+    ...results,
   ];
 
   function renderSingleCard({ item }: any) {
     if (item.id === "create") {
       return (
-        <TouchableOpacity style={styles.createRow}>
+        <TouchableOpacity
+          style={styles.createRow}
+          onPress={() => navigation.navigate("Import")}
+        >
           <View style={styles.createIconBox}>
             <Text style={styles.createPlus}>+</Text>
           </View>
-          <Text style={styles.createLabel}>Create new recipe</Text>
+          <Text style={styles.createLabel}>Import a recipe</Text>
         </TouchableOpacity>
       );
     }
     return (
-      <TouchableOpacity style={styles.singleCard}>
-        {item.image ? (
-          <Image source={{ uri: item.image }} style={styles.singleImage} />
+      <TouchableOpacity
+        style={styles.singleCard}
+        onPress={() => goToDetail(item)}
+      >
+        {item.image_url ? (
+          <Image source={{ uri: item.image_url }} style={styles.singleImage} />
         ) : (
           <View style={styles.singleImagePlaceholder}>
             <Text style={{ fontSize: 24 }}>🍽️</Text>
@@ -76,7 +119,10 @@ export default function SearchScreen({ navigation }: any) {
   function renderCompactCard({ item }: any) {
     if (item.id === "create") {
       return (
-        <TouchableOpacity style={styles.compactCard}>
+        <TouchableOpacity
+          style={styles.compactCard}
+          onPress={() => navigation.navigate("Import")}
+        >
           <View style={[styles.compactImage, styles.compactCreateBox]}>
             <Text style={styles.createPlus}>+</Text>
           </View>
@@ -86,11 +132,13 @@ export default function SearchScreen({ navigation }: any) {
         </TouchableOpacity>
       );
     }
-
     return (
-      <TouchableOpacity style={styles.compactCard}>
-        {item.image ? (
-          <Image source={{ uri: item.image }} style={styles.compactImage} />
+      <TouchableOpacity
+        style={styles.compactCard}
+        onPress={() => goToDetail(item)}
+      >
+        {item.image_url ? (
+          <Image source={{ uri: item.image_url }} style={styles.compactImage} />
         ) : (
           <View style={[styles.compactImage, styles.compactPlaceholder]}>
             <Text style={{ fontSize: 18 }}>🍽️</Text>
@@ -105,7 +153,6 @@ export default function SearchScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      {/* Search bar row */}
       <View style={styles.searchRow}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backArrow}>‹</Text>
@@ -123,7 +170,6 @@ export default function SearchScreen({ navigation }: any) {
           keyboardAppearance={isDark ? "dark" : "light"}
         />
 
-        {/* View mode toggle */}
         <TouchableOpacity
           style={styles.toggleButton}
           onPress={() =>
@@ -136,12 +182,15 @@ export default function SearchScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      {/* Results */}
-      {viewMode === "single" ? (
+      {loading && results.length === 0 ? (
+        <Text style={styles.loadingText}>Loading...</Text>
+      ) : results.length === 0 && query.length > 0 ? (
+        <Text style={styles.emptyText}>No recipes found for "{query}"</Text>
+      ) : viewMode === "single" ? (
         <FlatList
           data={listData}
           renderItem={renderSingleCard}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -150,7 +199,7 @@ export default function SearchScreen({ navigation }: any) {
         <FlatList
           data={listData}
           renderItem={renderCompactCard}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => String(item.id)}
           numColumns={3}
           columnWrapperStyle={styles.compactRow}
           contentContainerStyle={styles.listContent}
@@ -269,6 +318,18 @@ function makeStyles(theme: any) {
       fontSize: 15,
       color: theme.text,
       fontWeight: "500",
+    },
+    loadingText: {
+      color: theme.subtext,
+      textAlign: "center",
+      marginTop: 40,
+      fontSize: 15,
+    },
+    emptyText: {
+      color: theme.subtext,
+      textAlign: "center",
+      marginTop: 40,
+      fontSize: 15,
     },
 
     // Compact view
