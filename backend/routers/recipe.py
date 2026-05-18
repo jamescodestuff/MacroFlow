@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from services.scraper import scrape_url
+from services.text_parser import parse_text
 from database import get_db
 from models.recipe import Recipe
 
@@ -14,6 +15,7 @@ async def parse_recipe(payload: dict):
     if not source:
         return {"error": "No URL or text provided"}
 
+    # auto parse with scrape_me api
     if source.startswith("http"):
         result = scrape_url(source)
         if result:
@@ -24,7 +26,19 @@ async def parse_recipe(payload: dict):
                 "error": "Could not parse this URL — site may not be supported",
             }
 
-    return {"recieveded": source, "message": "text parsing next"}
+    # raw text parsing
+    result = parse_text(source)
+    if result.get("low_confidence"):
+        return {
+            "source": "nlp",
+            "low_confidence": True,
+            "score": result["score"],
+            "data": result[
+                "data"
+            ],  # still return the data, user might need to manual check/approve later
+            "message": f"Low confidence ({result['score']}) — review before saving",
+        }
+    return result
 
 
 @router.post("/save-recipe")
